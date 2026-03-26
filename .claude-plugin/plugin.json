@@ -1,0 +1,19 @@
+{
+  "name": "green-code",
+  "version": "1.0.0",
+  "description": "Track your AI carbon footprint and plant trees to compensate via Tree-Nation",
+  "author": {
+    "name": "Jeremie Samson"
+  },
+  "repository": "https://github.com/jsamson/green-code",
+  "license": "MIT",
+  "keywords": [
+    "carbon",
+    "environment",
+    "tree-nation",
+    "sustainability",
+    "green-it",
+    "energy",
+    "tracking"
+  ]
+}

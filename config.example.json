@@ -1,0 +1,8 @@
+{
+  "treenation_api_key": "YOUR_TREE_NATION_API_TOKEN",
+  "planter_id": "YOUR_PLANTER_ID",
+  "mode": "manual",
+  "threshold_co2_kg": 10,
+  "co2_grams_per_kwh": 380,
+  "pue": 1.2
+}

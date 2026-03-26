@@ -1,0 +1,19 @@
+{
+  "name": "green-code-marketplace",
+  "owner": {
+    "name": "Jeremie Samson"
+  },
+  "plugins": [
+    {
+      "name": "green-code",
+      "source": "./",
+      "description": "Track your AI carbon footprint and plant trees to compensate via Tree-Nation",
+      "version": "1.0.0",
+      "author": {
+        "name": "Jeremie Samson"
+      },
+      "keywords": ["carbon", "environment", "tree-nation", "sustainability", "green-it"],
+      "category": "sustainability"
+    }
+  ]
+}
