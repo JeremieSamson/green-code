@@ -9,9 +9,14 @@ PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 
 # Exit silently if not configured or no stats
 [ -f "$CONFIG_FILE" ] || exit 0
-[ -f "$USAGE_FILE" ] || exit 0
 [ -f "$STATS_FILE" ] || exit 0
 command -v jq &>/dev/null || exit 0
+
+# Bootstrap usage.json if missing (fallback for manual config setup)
+if [ ! -f "$USAGE_FILE" ]; then
+  "${PLUGIN_ROOT}/scripts/bootstrap.sh" 2>/dev/null || exit 0
+  [ -f "$USAGE_FILE" ] || exit 0
+fi
 
 # Read current totals from stats-cache.json
 curr_input=$(jq '[.modelUsage[].inputTokens] | add // 0' "$STATS_FILE")

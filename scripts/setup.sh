@@ -59,41 +59,9 @@ cat > "$CONFIG_FILE" << EOF
 }
 EOF
 
-# Initialize usage.json with current stats snapshot
-STATS_FILE="${HOME}/.claude/stats-cache.json"
-USAGE_FILE="${DATA_DIR}/usage.json"
+# Bootstrap usage.json with historical analysis
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+"${SCRIPT_DIR}/bootstrap.sh"
 
-input=0; output=0; cache_read=0; cache_create=0
-if [ -f "$STATS_FILE" ] && command -v jq &>/dev/null; then
-  input=$(jq '[.modelUsage[].inputTokens] | add // 0' "$STATS_FILE")
-  output=$(jq '[.modelUsage[].outputTokens] | add // 0' "$STATS_FILE")
-  cache_read=$(jq '[.modelUsage[].cacheReadInputTokens] | add // 0' "$STATS_FILE")
-  cache_create=$(jq '[.modelUsage[].cacheCreationInputTokens] | add // 0' "$STATS_FILE")
-fi
-
-cat > "$USAGE_FILE" << EOF
-{
-  "lastSnapshot": {
-    "inputTokens": ${input},
-    "outputTokens": ${output},
-    "cacheReadInputTokens": ${cache_read},
-    "cacheCreationInputTokens": ${cache_create},
-    "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  },
-  "accumulated": {
-    "kwh": 0,
-    "co2_kg": 0,
-    "since": "$(date +%Y-%m-%d)"
-  },
-  "history": [],
-  "trees": {
-    "total": 0,
-    "planted": []
-  }
-}
-EOF
-
-echo ""
 echo "green-code configured! Mode: ${mode}, threshold: ${threshold} kg CO2."
-echo "Use /green:status to see your carbon footprint."
 echo ""

@@ -47,6 +47,16 @@ Run the setup script:
 
 Or create the config directory and file manually by asking the user for each field.
 
+## After config creation or update
+
+If `~/.claude/plugins/data/green-code/usage.json` does not exist, run the bootstrap script to perform an initial analysis of historical token usage:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"
+```
+
+This reads `~/.claude/stats-cache.json`, computes accumulated CO2 from all past usage, and creates `usage.json`. Show the bootstrap output to the user.
+
 ## Display format
 
     green-code -- Configuration
