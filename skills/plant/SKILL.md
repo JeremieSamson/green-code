@@ -9,7 +9,7 @@ Plant trees via Tree-Nation to compensate the user's AI carbon footprint.
 
 ## Steps
 
-1. Read `~/.claude/plugins/data/green-code/config.json` to verify API key and planter_id are set. If not, tell the user to run `/green:config` first.
+1. Read `~/.claude/plugins/data/green-code/config.json` to verify API key and forest_id are set. If not, tell the user to run `/green:config` first.
 
 2. Read `~/.claude/plugins/data/green-code/usage.json` to get the current CO2 accumulation.
 

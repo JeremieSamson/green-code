@@ -28,10 +28,10 @@ if [ -z "$api_key" ]; then
   api_key=""
 fi
 
-read -rp "Tree-Nation Planter ID: " planter_id
-if [ -z "$planter_id" ]; then
-  echo "No planter ID provided. Run /green:config later to set it."
-  planter_id=""
+read -rp "Tree-Nation Forest ID (numeric): " forest_id
+if [ -z "$forest_id" ]; then
+  echo "No forest ID provided. Run /green:config later to set it."
+  forest_id=0
 fi
 
 echo ""
@@ -51,7 +51,7 @@ threshold="${threshold:-10}"
 cat > "$CONFIG_FILE" << EOF
 {
   "treenation_api_key": "${api_key}",
-  "planter_id": "${planter_id}",
+  "forest_id": ${forest_id},
   "mode": "${mode}",
   "threshold_co2_kg": ${threshold},
   "co2_grams_per_kwh": 380,

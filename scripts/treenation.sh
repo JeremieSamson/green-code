@@ -9,11 +9,11 @@ USAGE_FILE="${DATA_DIR}/usage.json"
 command -v jq &>/dev/null || { echo "jq is required"; exit 1; }
 
 API_KEY=$(jq -r '.treenation_api_key // ""' "$CONFIG_FILE")
-PLANTER_ID=$(jq -r '.planter_id // ""' "$CONFIG_FILE")
-BASE_URL="https://tree-nation.com/api/v1"
+FOREST_ID=$(jq -r '.forest_id // ""' "$CONFIG_FILE")
+BASE_URL="https://tree-nation.com/api"
 
 [ -n "$API_KEY" ] || { echo "No Tree-Nation API key configured. Run /green:config"; exit 1; }
-[ -n "$PLANTER_ID" ] || { echo "No Tree-Nation planter ID configured. Run /green:config"; exit 1; }
+[ -n "$FOREST_ID" ] || { echo "No Tree-Nation forest ID configured. Run /green:config"; exit 1; }
 
 cmd_plant() {
   local count="${1:-1}"
@@ -25,9 +25,8 @@ cmd_plant() {
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
     -d "{
-      \"planter_id\": \"${PLANTER_ID}\",
-      \"quantity\": ${count},
-      \"message\": \"Planted by green-code plugin - offsetting ${co2_offset} kg CO2 from AI usage\"
+      \"forest_id\": ${FOREST_ID},
+      \"quantity\": ${count}
     }")
 
   http_code=$(echo "$response" | tail -1)
@@ -66,7 +65,7 @@ cmd_plant() {
 cmd_forest() {
   response=$(curl -s \
     -H "Authorization: Bearer ${API_KEY}" \
-    "${BASE_URL}/forests/${PLANTER_ID}")
+    "${BASE_URL}/forests/${FOREST_ID}")
   echo "$response" | jq .
 }
 

@@ -13,7 +13,7 @@ Location: `~/.claude/plugins/data/green-code/config.json`
 
 Fields:
 - `treenation_api_key` (string) -- Tree-Nation Bearer token
-- `planter_id` (string) -- Tree-Nation planter/user ID
+- `forest_id` (number) -- Tree-Nation forest ID (numeric)
 - `mode` (string) -- "auto" or "manual"
 - `threshold_co2_kg` (number) -- kg CO2 per tree, default 10
 - `co2_grams_per_kwh` (number) -- carbon intensity, default 380 (US mix)
@@ -33,7 +33,7 @@ Fields:
   - `threshold_co2_kg` must be a positive number
   - `co2_grams_per_kwh` must be a positive number
   - `pue` must be between 1.0 and 2.0
-  - `treenation_api_key` and `planter_id` accept any non-empty string
+  - `treenation_api_key` and `forest_id` accept any non-empty string
 - Update the config file using jq or direct JSON edit
 - Confirm the change
 
@@ -69,4 +69,4 @@ This reads `~/.claude/stats-cache.json`, computes accumulated CO2 from all past 
       PUE:          1.2
 
       To change: /green:config <key> <value>
-      Keys: mode, threshold_co2_kg, co2_grams_per_kwh, pue, treenation_api_key, planter_id
+      Keys: mode, threshold_co2_kg, co2_grams_per_kwh, pue, treenation_api_key, forest_id
