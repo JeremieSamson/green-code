@@ -2,6 +2,8 @@
 
 Track your AI carbon footprint and plant trees to compensate.
 
+<img width="545" height="320" alt="status" src="https://github.com/user-attachments/assets/da542e39-6b01-4534-b9dc-a87d9e84d7c7" />
+
 ## What it does
 
 - Silently tracks your Claude Code token consumption at each session end
