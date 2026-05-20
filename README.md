@@ -2,10 +2,11 @@
 
 Track your AI carbon footprint and plant trees to compensate.
 
-<img width="545" height="320" alt="status" src="https://github.com/user-attachments/assets/da542e39-6b01-4534-b9dc-a87d9e84d7c7" />
+![green-code session start summary](docs/session-start.png)
 
 ## What it does
 
+- Shows a carbon footprint summary at every Claude Code session start (CO2 emitted, trees planted, debt, progress bar towards next tree)
 - Silently tracks your Claude Code token consumption at each session end
 - Estimates energy use (kWh) and CO2 emissions based on published research
 - Two modes: **auto** (plant trees automatically at threshold) or **manual** (track and plant on demand)
