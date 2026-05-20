@@ -39,17 +39,26 @@ At each session end, the plugin reads `~/.claude/stats-cache.json` and computes 
 
 ### Energy estimation
 
-| Token type | Wh per token | Rationale |
-|------------|-------------|-----------|
-| Output (generation) | 0.002 | Full GPU forward pass + sampling |
-| Input (fresh) | 0.0005 | Prefill, parallelizable |
-| Cache creation | 0.0005 | Same as prefill |
-| Cache read | 0.00002 | Memory I/O, minimal compute |
+Per-model base cost in Wh per **output** token. Other token types are derived as ratios that match Anthropic's API pricing tiers (which track underlying compute cost):
+
+| Model family | Wh / output token | Rationale |
+|---|---|---|
+| Opus | 0.002 | Dense ~400B-class, TokenPowerBench Llama-405B reference |
+| Sonnet | 0.0008 | Mid-size MoE / dense |
+| Haiku | 0.0003 | Small fast model |
+| (unknown) | 0.001 | Conservative default |
+
+| Token type | Ratio vs output | Effective Wh (Opus) |
+|---|---|---|
+| Output | 1.00 | 0.002 |
+| Input (fresh) | 0.20 | 0.0004 |
+| Cache creation | 0.25 | 0.0005 |
+| Cache read | 0.02 | 0.00004 |
 
 ### CO2 conversion
 
-- Default: US energy mix at 380 gCO2/kWh (IEA 2024)
-- PUE 1.2 for datacenter overhead (cooling, networking)
+- Default: 320 gCO2/kWh (cloud-provider weighted US mix with renewable PPAs; AWS sustainability report 2024)
+- PUE 1.15 for datacenter overhead, aligned with AWS 2024 global average
 - 1 tree = 10 kg CO2 (configurable)
 
 ### Tree-Nation
@@ -58,10 +67,12 @@ Trees are planted via the [Tree-Nation REST API](https://kb.tree-nation.com/know
 
 ## Sources
 
-- IEA, "Electricity 2024" -- iea.org/reports/electricity-2024
-- de Vries A., "The growing energy footprint of AI", Joule 2023
+- TokenPowerBench, AAAI 2026 -- arxiv.org/abs/2512.03024 (per-model output-token energy at frontier scale)
+- "Energy Considerations of LLM Inference", arXiv 2504.17674 (prefill vs decode energy)
 - Luccioni et al., "Power Hungry Processing", ACM FAccT 2024
-- Patterson et al., "Carbon Footprint of ML Training", IEEE 2022
+- AWS Sustainability Report 2024 -- aws.amazon.com/sustainability/data-centers/ (PUE 1.15)
+- Anthropic Prompt Caching docs (cache read ~90% reduction vs fresh input)
+- IEA, "Electricity 2024" -- iea.org/reports/electricity-2024
 
 ## Localization
 

@@ -3,6 +3,6 @@
   "forest_id": 0,
   "mode": "manual",
   "threshold_co2_kg": 10,
-  "co2_grams_per_kwh": 380,
-  "pue": 1.2
+  "co2_grams_per_kwh": 320,
+  "pue": 1.15
 }
