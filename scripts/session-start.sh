@@ -37,9 +37,12 @@ co2_fmt=$(printf "%.2f" "$co2")
 
 label="${GREEN}${BOLD}green-code${RESET}"
 
+sep_line="${DIM}${GREEN}──────────────────────────────────────────────────────────────${RESET}"
+
 is_negative_or_zero=$(echo "$debt <= 0" | bc)
 if [ "$is_negative_or_zero" = "1" ]; then
-  msg="${label}  ${co2_fmt} kg CO2 ${DIM}emis${RESET}  ${DIM}|${RESET}  ${trees} arbres plantes  ${DIM}|${RESET}  ${GREEN}Carbone neutre${RESET}"
+  body="${label}  ${co2_fmt} kg CO2 ${DIM}emis${RESET}  ${DIM}·${RESET}  ${trees} arbres plantes  ${DIM}·${RESET}  ${GREEN}${BOLD}Carbone neutre${RESET}"
+  msg=$(printf "%s\n%s\n%s" "$sep_line" "$body" "$sep_line")
   emit_json "$msg"
   exit 0
 fi
@@ -54,25 +57,17 @@ percent=$(echo "scale=0; $remainder * 100 / $threshold" | bc)
 filled=$(echo "scale=0; $remainder * 20 / $threshold" | bc)
 empty=$((20 - filled))
 
-if [ "$percent" -ge 80 ]; then
-  bar_color="$RED"
-elif [ "$percent" -ge 50 ]; then
-  bar_color="$YELLOW"
-else
-  bar_color="$GREEN"
-fi
-
 bar_full=""
 for ((i=0; i<filled; i++)); do bar_full+="█"; done
 bar_empty=""
 for ((i=0; i<empty; i++)); do bar_empty+="░"; done
-bar="${bar_color}${bar_full}${DIM}${bar_empty}${RESET}"
+bar="${GREEN}${bar_full}${DIM}${bar_empty}${RESET}"
 
-line1=$(printf "%s  %s kg CO2 %semis%s  %s|%s  %s arbres plantes  %s|%s  %sdette %s kg%s (%s arbres dus)" \
-  "$label" "$co2_fmt" "$DIM" "$RESET" "$DIM" "$RESET" "$trees" "$DIM" "$RESET" "$RED" "$debt_fmt" "$RESET" "$trees_owed")
+line1=$(printf "%s  %s%s kg CO2%s %semis%s  %s·%s  %s%s arbres plantes%s  %s·%s  %sdette %s kg%s %s(%s arbres dus)%s" \
+  "$label" "$BOLD" "$co2_fmt" "$RESET" "$DIM" "$RESET" "$DIM" "$RESET" "$BOLD" "$trees" "$RESET" "$DIM" "$RESET" "$GREEN" "$debt_fmt" "$RESET" "$DIM" "$trees_owed" "$RESET")
 
 line2=$(printf "%sProchain arbre%s  %s  %s%s%%%s  %s(%s / %s kg)%s" \
-  "$DIM" "$RESET" "$bar" "$bar_color" "$percent" "$RESET" "$DIM" "$remainder_fmt" "$threshold_fmt" "$RESET")
+  "$DIM" "$RESET" "$bar" "$GREEN" "$percent" "$RESET" "$DIM" "$remainder_fmt" "$threshold_fmt" "$RESET")
 
-msg=$(printf "%s\n%s" "$line1" "$line2")
+msg=$(printf "%s\n%s\n%s\n%s" "$sep_line" "$line1" "$line2" "$sep_line")
 emit_json "$msg"
