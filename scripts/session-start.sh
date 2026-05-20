@@ -6,6 +6,14 @@ DATA_DIR="${HOME}/.claude/plugins/data/green-code"
 CONFIG_FILE="${DATA_DIR}/config.json"
 USAGE_FILE="${DATA_DIR}/usage.json"
 
+emit_json() {
+  local msg="$1"
+  jq -nc \
+    --arg ctx "$msg" \
+    --arg sys "$msg" \
+    '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $ctx}, systemMessage: $sys}'
+}
+
 [ -f "$CONFIG_FILE" ] || exit 0
 [ -f "$USAGE_FILE" ] || exit 0
 command -v jq &>/dev/null || exit 0
@@ -22,7 +30,7 @@ co2_fmt=$(printf "%.2f" "$co2")
 
 is_negative_or_zero=$(echo "$debt <= 0" | bc)
 if [ "$is_negative_or_zero" = "1" ]; then
-  echo "green-code | ${co2_fmt} kg CO2 emis | ${trees} arbres plantes | Carbone neutre"
+  emit_json "green-code | ${co2_fmt} kg CO2 emis | ${trees} arbres plantes | Carbone neutre"
   exit 0
 fi
 
@@ -40,6 +48,7 @@ bar=""
 for ((i=0; i<filled; i++)); do bar="${bar}#"; done
 for ((i=0; i<empty; i++)); do bar="${bar}."; done
 
-echo "green-code | ${co2_fmt} kg CO2 emis | ${trees} arbres plantes"
-echo "Dette nette: ${debt_fmt} kg (${trees_owed} arbres dus)"
-echo "Prochain arbre: [${bar}] ${remainder_fmt} / ${threshold_fmt} kg (${percent}%)"
+msg=$(printf "green-code | %s kg CO2 emis | %s arbres plantes\nDette nette: %s kg (%s arbres dus)\nProchain arbre: [%s] %s / %s kg (%s%%)" \
+  "$co2_fmt" "$trees" "$debt_fmt" "$trees_owed" "$bar" "$remainder_fmt" "$threshold_fmt" "$percent")
+
+emit_json "$msg"

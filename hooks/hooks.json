@@ -15,7 +15,7 @@
     ],
     "SessionStart": [
       {
-        "matcher": "*",
+        "matcher": "startup|clear|compact|resume",
         "hooks": [
           {
             "type": "command",
