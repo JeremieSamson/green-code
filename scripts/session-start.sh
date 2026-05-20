@@ -42,7 +42,7 @@ sep_line="${DIM}${GREEN}──────────────────�
 is_negative_or_zero=$(echo "$debt <= 0" | bc)
 if [ "$is_negative_or_zero" = "1" ]; then
   body="${label}  ${co2_fmt} kg CO2 ${DIM}emis${RESET}  ${DIM}·${RESET}  ${trees} arbres plantes  ${DIM}·${RESET}  ${GREEN}${BOLD}Carbone neutre${RESET}"
-  msg=$(printf "%s\n%s\n%s" "$sep_line" "$body" "$sep_line")
+  msg=$(printf "\n%s\n%s\n%s" "$sep_line" "$body" "$sep_line")
   emit_json "$msg"
   exit 0
 fi
@@ -69,5 +69,5 @@ line1=$(printf "%s  %s%s kg CO2%s %semis%s  %s·%s  %s%s arbres plantes%s  %s·%
 line2=$(printf "%sProchain arbre%s  %s  %s%s%%%s  %s(%s / %s kg)%s" \
   "$DIM" "$RESET" "$bar" "$GREEN" "$percent" "$RESET" "$DIM" "$remainder_fmt" "$threshold_fmt" "$RESET")
 
-msg=$(printf "%s\n%s\n%s\n%s" "$sep_line" "$line1" "$line2" "$sep_line")
+msg=$(printf "\n%s\n%s\n%s\n%s" "$sep_line" "$line1" "$line2" "$sep_line")
 emit_json "$msg"
