@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./i18n.sh
+. "${SCRIPT_DIR}/i18n.sh"
+
 DATA_DIR="${HOME}/.claude/plugins/data/green-code"
 CONFIG_FILE="${DATA_DIR}/config.json"
 
@@ -12,40 +16,40 @@ fi
 mkdir -p "$DATA_DIR"
 
 echo ""
-echo "=== green-code setup ==="
+echo "$T_SETUP_HEADER"
 echo ""
-echo "This plugin tracks your AI carbon footprint and lets you"
-echo "plant trees via Tree-Nation to compensate."
+echo "$T_SETUP_DESC_1"
+echo "$T_SETUP_DESC_2"
 echo ""
-echo "You need a Tree-Nation API token."
-echo "Request one at: https://kb.tree-nation.com/knowledge/api-availability"
-echo "Or email: integration@tree-nation.com"
+echo "$T_SETUP_TOKEN_NEED"
+echo "$T_SETUP_TOKEN_REQUEST"
+echo "$T_SETUP_TOKEN_EMAIL"
 echo ""
 
-read -rp "Tree-Nation API token: " api_key
+read -rp "${T_SETUP_TOKEN_PROMPT}: " api_key
 if [ -z "$api_key" ]; then
-  echo "No API key provided. Run /green:config later to set it up."
+  echo "$T_SETUP_NO_TOKEN"
   api_key=""
 fi
 
-read -rp "Tree-Nation Forest ID (numeric): " forest_id
+read -rp "${T_SETUP_FOREST_PROMPT}: " forest_id
 if [ -z "$forest_id" ]; then
-  echo "No forest ID provided. Run /green:config later to set it."
+  echo "$T_SETUP_NO_FOREST"
   forest_id=0
 fi
 
 echo ""
-echo "Mode:"
-echo "  auto   - Plant a tree automatically when threshold is reached"
-echo "  manual - Track only, plant manually with /green:plant"
+echo "$T_SETUP_MODE_LABEL"
+echo "$T_SETUP_MODE_AUTO"
+echo "$T_SETUP_MODE_MANUAL"
 echo ""
-read -rp "Mode [manual]: " mode
+read -rp "${T_SETUP_MODE_PROMPT}: " mode
 mode="${mode:-manual}"
 if [ "$mode" != "auto" ] && [ "$mode" != "manual" ]; then
   mode="manual"
 fi
 
-read -rp "CO2 threshold per tree in kg [10]: " threshold
+read -rp "${T_SETUP_THRESHOLD_PROMPT}: " threshold
 threshold="${threshold:-10}"
 
 cat > "$CONFIG_FILE" << EOF
@@ -63,5 +67,7 @@ EOF
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 "${SCRIPT_DIR}/bootstrap.sh"
 
-echo "green-code configured! Mode: ${mode}, threshold: ${threshold} kg CO2."
+echo ""
+echo "${T_SETUP_DONE_PREFIX} ${mode}, ${T_SETUP_DONE_THRESHOLD} ${threshold} kg CO2."
+echo "$T_SETUP_DONE_HINT"
 echo ""

@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./i18n.sh
+. "${SCRIPT_DIR}/i18n.sh"
+
 export LC_ALL=C
 
 DATA_DIR="${HOME}/.claude/plugins/data/green-code"
@@ -41,7 +46,7 @@ sep_line="${DIM}${GREEN}──────────────────�
 
 is_negative_or_zero=$(echo "$debt <= 0" | bc)
 if [ "$is_negative_or_zero" = "1" ]; then
-  body="${label}  ${co2_fmt} kg CO2 ${DIM}emis${RESET}  ${DIM}·${RESET}  ${trees} arbres plantes  ${DIM}·${RESET}  ${GREEN}${BOLD}Carbone neutre${RESET}"
+  body="${label}  ${co2_fmt} kg CO2 ${DIM}${T_EMITTED}${RESET}  ${DIM}·${RESET}  ${trees} ${T_TREES_PLANTED}  ${DIM}·${RESET}  ${GREEN}${BOLD}${T_CARBON_NEUTRAL}${RESET}"
   msg=$(printf "\n%s\n%s\n%s" "$sep_line" "$body" "$sep_line")
   emit_json "$msg"
   exit 0
@@ -63,11 +68,11 @@ bar_empty=""
 for ((i=0; i<empty; i++)); do bar_empty+="░"; done
 bar="${GREEN}${bar_full}${DIM}${bar_empty}${RESET}"
 
-line1=$(printf "%s  %s%s kg CO2%s %semis%s  %s·%s  %s%s arbres plantes%s  %s·%s  %sdette %s kg%s %s(%s arbres dus)%s" \
-  "$label" "$BOLD" "$co2_fmt" "$RESET" "$DIM" "$RESET" "$DIM" "$RESET" "$BOLD" "$trees" "$RESET" "$DIM" "$RESET" "$GREEN" "$debt_fmt" "$RESET" "$DIM" "$trees_owed" "$RESET")
+line1=$(printf "%s  %s%s kg CO2%s %s%s%s  %s·%s  %s%s %s%s  %s·%s  %s%s %s kg%s %s(%s %s)%s" \
+  "$label" "$BOLD" "$co2_fmt" "$RESET" "$DIM" "$T_EMITTED" "$RESET" "$DIM" "$RESET" "$BOLD" "$trees" "$T_TREES_PLANTED" "$RESET" "$DIM" "$RESET" "$GREEN" "$T_DEBT" "$debt_fmt" "$RESET" "$DIM" "$trees_owed" "$T_TREES_OWED_LABEL" "$RESET")
 
-line2=$(printf "%sProchain arbre%s  %s  %s%s%%%s  %s(%s / %s kg)%s" \
-  "$DIM" "$RESET" "$bar" "$GREEN" "$percent" "$RESET" "$DIM" "$remainder_fmt" "$threshold_fmt" "$RESET")
+line2=$(printf "%s%s%s  %s  %s%s%%%s  %s(%s / %s kg)%s" \
+  "$DIM" "$T_NEXT_TREE" "$RESET" "$bar" "$GREEN" "$percent" "$RESET" "$DIM" "$remainder_fmt" "$threshold_fmt" "$RESET")
 
 msg=$(printf "\n%s\n%s\n%s\n%s" "$sep_line" "$line1" "$line2" "$sep_line")
 emit_json "$msg"

@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./i18n.sh
+. "${SCRIPT_DIR}/i18n.sh"
+
 DATA_DIR="${HOME}/.claude/plugins/data/green-code"
 CONFIG_FILE="${DATA_DIR}/config.json"
 USAGE_FILE="${DATA_DIR}/usage.json"
 
-[ -f "$CONFIG_FILE" ] || { echo "green-code not configured. Run /green:config"; exit 1; }
-command -v jq &>/dev/null || { echo "jq is required"; exit 1; }
+[ -f "$CONFIG_FILE" ] || { echo "$T_TN_NOT_CONFIGURED"; exit 1; }
+command -v jq &>/dev/null || { echo "$T_TN_JQ_REQUIRED"; exit 1; }
 
 API_KEY=$(jq -r '.treenation_api_key // ""' "$CONFIG_FILE")
 FOREST_ID=$(jq -r '.forest_id // ""' "$CONFIG_FILE")
 BASE_URL="https://tree-nation.com/api"
 
-[ -n "$API_KEY" ] || { echo "No Tree-Nation API key configured. Run /green:config"; exit 1; }
-[ -n "$FOREST_ID" ] || { echo "No Tree-Nation forest ID configured. Run /green:config"; exit 1; }
+[ -n "$API_KEY" ] || { echo "$T_TN_NO_API_KEY"; exit 1; }
+[ -n "$FOREST_ID" ] || { echo "$T_TN_NO_FOREST"; exit 1; }
 
 cmd_plant() {
   local count="${1:-1}"
@@ -53,7 +57,7 @@ cmd_plant() {
       }]
       ' "$USAGE_FILE" > "${USAGE_FILE}.tmp" && mv "${USAGE_FILE}.tmp" "$USAGE_FILE"
 
-    echo "OK:${count} trees planted (${co2_offset} kg CO2 offset)"
+    echo "OK:${count} ${T_TN_TREES_PLANTED} (${co2_offset} ${T_TN_OFFSET})"
     [ -n "$cert_urls" ] && echo "CERTS:${cert_urls}"
     return 0
   else
@@ -85,7 +89,7 @@ case "${1:-help}" in
   forest)  cmd_forest ;;
   species) cmd_species "${2:-}" ;;
   *)
-    echo "Usage: treenation.sh {plant [N]|forest|species [project_id]}"
+    echo "$T_TN_USAGE"
     exit 1
     ;;
 esac

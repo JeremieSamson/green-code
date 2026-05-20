@@ -63,6 +63,10 @@ Trees are planted via the [Tree-Nation REST API](https://kb.tree-nation.com/know
 - Luccioni et al., "Power Hungry Processing", ACM FAccT 2024
 - Patterson et al., "Carbon Footprint of ML Training", IEEE 2022
 
+## Localization
+
+Shell script output (session start, setup wizard, planting feedback) is auto-translated based on `$LANG`. Supported locales: `fr` and `en` (default). Skills (`/green:status`, `/green:plant`, `/green:config`) remain in English -- they are Markdown prompts loaded by Claude, who will naturally respond in the user's language anyway.
+
 ## Limitations
 
 - Energy estimates have ~x2 uncertainty -- no AI provider publishes per-token energy data
