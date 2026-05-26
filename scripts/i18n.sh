@@ -51,7 +51,9 @@ if [ "$GREEN_LANG" = "fr" ]; then
   T_TN_NO_FOREST="Aucun forest ID Tree-Nation configuré. Lance /green:config"
   T_TN_TREES_PLANTED="arbres plantés"
   T_TN_OFFSET="kg CO2 compensés"
-  T_TN_USAGE="Usage : treenation.sh {plant [N]|forest|species [project_id]}"
+  # %s = CO2 compensé (kg), %s = date
+  T_TN_DEFAULT_MSG="Compensation %s kg CO2 - usage IA Claude Code - %s"
+  T_TN_USAGE="Usage : treenation.sh {plant [N] [message]|forest|species [project_id]}"
 else
   # session-start.sh
   T_EMITTED="emitted"
@@ -88,5 +90,7 @@ else
   T_TN_NO_FOREST="No Tree-Nation forest ID configured. Run /green:config"
   T_TN_TREES_PLANTED="trees planted"
   T_TN_OFFSET="kg CO2 offset"
-  T_TN_USAGE="Usage: treenation.sh {plant [N]|forest|species [project_id]}"
+  # %s = CO2 offset (kg), %s = date
+  T_TN_DEFAULT_MSG="Offsetting %s kg CO2 - Claude Code AI usage - %s"
+  T_TN_USAGE="Usage: treenation.sh {plant [N] [message]|forest|species [project_id]}"
 fi

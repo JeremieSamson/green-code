@@ -28,6 +28,7 @@ On first launch, the plugin asks for your Tree-Nation API token and preferences.
 | `/green:status` | View your carbon footprint and tree balance |
 | `/green:plant` | Plant trees to offset accumulated CO2 |
 | `/green:plant 3` | Plant a specific number of trees |
+| `/green:plant 3 "message"` | Plant trees with a custom dedication message (shown on the certificate) |
 | `/green:config` | View current configuration |
 | `/green:config mode auto` | Switch to auto-plant mode |
 
@@ -63,7 +64,7 @@ Per-model base cost in Wh per **output** token. Other token types are derived as
 
 ### Tree-Nation
 
-Trees are planted via the [Tree-Nation REST API](https://kb.tree-nation.com/knowledge/api-availability). You need a Tree-Nation account and API token.
+Trees are planted via the [Tree-Nation REST API](https://kb.tree-nation.com/knowledge/api-availability). You need a Tree-Nation account and API token. Each planting carries a dedication message shown on the public certificate: pass your own (`/green:plant 3 "message"`) or let the plugin fill in a default (`Offsetting {co2} kg CO2 - Claude Code AI usage - {date}`).
 
 ## Sources
 

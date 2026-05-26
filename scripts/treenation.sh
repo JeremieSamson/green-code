@@ -21,17 +21,31 @@ BASE_URL="https://tree-nation.com/api"
 
 cmd_plant() {
   local count="${1:-1}"
+  local message="${2:-}"
   local threshold=$(jq '.threshold_co2_kg // 10' "$CONFIG_FILE")
   local co2_offset=$(echo "scale=2; $count * $threshold" | bc)
+
+  # Default dedication message (shown on the public Tree-Nation certificate)
+  # when the caller did not provide one.
+  if [ -z "$message" ]; then
+    message="$(printf "$T_TN_DEFAULT_MSG" "$co2_offset" "$(date -u +%Y-%m-%d)")"
+  fi
+
+  # Build the JSON body with jq so the message is safely escaped (quotes,
+  # accents, spaces). The Tree-Nation plant endpoint accepts an optional
+  # "message" field that is attached to each planting.
+  local payload
+  payload=$(jq -n \
+    --argjson forest_id "$FOREST_ID" \
+    --argjson quantity "$count" \
+    --arg message "$message" \
+    '{forest_id: $forest_id, quantity: $quantity, message: $message}')
 
   response=$(curl -s -w "\n%{http_code}" \
     -X POST "${BASE_URL}/plant" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
-    -d "{
-      \"forest_id\": ${FOREST_ID},
-      \"quantity\": ${count}
-    }")
+    -d "$payload")
 
   http_code=$(echo "$response" | tail -1)
   body=$(echo "$response" | sed '$d')
@@ -47,12 +61,14 @@ cmd_plant() {
       --arg date "$NOW" \
       --argjson offset "$co2_offset" \
       --arg certs "$cert_urls" \
+      --arg message "$message" \
       '
       .trees.total += $count |
       .trees.planted += [{
         "date": $date,
         "count": $count,
         "co2_offset_kg": $offset,
+        "message": $message,
         "certificates": ($certs | split("\n") | map(select(. != "")))
       }]
       ' "$USAGE_FILE" > "${USAGE_FILE}.tmp" && mv "${USAGE_FILE}.tmp" "$USAGE_FILE"
@@ -85,7 +101,7 @@ cmd_species() {
 }
 
 case "${1:-help}" in
-  plant)   cmd_plant "${2:-1}" ;;
+  plant)   cmd_plant "${2:-1}" "${3:-}" ;;
   forest)  cmd_forest ;;
   species) cmd_species "${2:-}" ;;
   *)
