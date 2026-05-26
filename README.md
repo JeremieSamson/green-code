@@ -15,7 +15,7 @@ Track your AI carbon footprint and plant trees to compensate.
 ## Install
 
 ```bash
-/plugin marketplace add jsamson/green-code
+/plugin marketplace add JeremieSamson/green-code
 /plugin install green-code@green-code-marketplace
 ```
 

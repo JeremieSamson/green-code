@@ -8,7 +8,7 @@
       "name": "green-code",
       "source": "./",
       "description": "Track your AI carbon footprint and plant trees to compensate via Tree-Nation",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Jeremie Samson"
       },
