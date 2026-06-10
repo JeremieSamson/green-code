@@ -4,7 +4,7 @@ set -euo pipefail
 DATA_DIR="${HOME}/.claude/plugins/data/green-code"
 CONFIG_FILE="${DATA_DIR}/config.json"
 USAGE_FILE="${DATA_DIR}/usage.json"
-STATS_FILE="${HOME}/.claude/stats-cache.json"
+PROJECTS_DIR="${HOME}/.claude/projects"
 
 # Idempotent: skip if usage.json already exists
 [ -f "$USAGE_FILE" ] && exit 0
@@ -12,69 +12,90 @@ STATS_FILE="${HOME}/.claude/stats-cache.json"
 # Require config and jq
 [ -f "$CONFIG_FILE" ] || { echo "ERROR: config.json not found. Run /green:config first." >&2; exit 1; }
 command -v jq &>/dev/null || { echo "ERROR: jq is required." >&2; exit 1; }
-command -v bc &>/dev/null || { echo "ERROR: bc is required." >&2; exit 1; }
 
 # Read config
-pue=$(jq '.pue // 1.2' "$CONFIG_FILE")
-co2_g_per_kwh=$(jq '.co2_grams_per_kwh // 380' "$CONFIG_FILE")
+pue=$(jq '.pue // 1.15' "$CONFIG_FILE")
+co2_g_per_kwh=$(jq '.co2_grams_per_kwh // 320' "$CONFIG_FILE")
 threshold=$(jq '.threshold_co2_kg // 10' "$CONFIG_FILE")
 
-# Read current token totals from stats-cache
-input=0; output=0; cache_read=0; cache_create=0
-first_session=""
-if [ -f "$STATS_FILE" ]; then
-  input=$(jq '[.modelUsage[].inputTokens] | add // 0' "$STATS_FILE")
-  output=$(jq '[.modelUsage[].outputTokens] | add // 0' "$STATS_FILE")
-  cache_read=$(jq '[.modelUsage[].cacheReadInputTokens] | add // 0' "$STATS_FILE")
-  cache_create=$(jq '[.modelUsage[].cacheCreationInputTokens] | add // 0' "$STATS_FILE")
-  first_session=$(jq -r '.firstSessionDate // empty' "$STATS_FILE" | cut -dT -f1)
+NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+# Historical usage is rebuilt from the session transcripts (the only durable
+# token source: ~/.claude/stats-cache.json is no longer written by recent
+# Claude Code versions). Each session gets a snapshot so the Stop hook never
+# double-counts what was accounted here. Lines are deduplicated by message id.
+transcripts=()
+if [ -d "$PROJECTS_DIR" ]; then
+  while IFS= read -r f; do transcripts+=("$f"); done \
+    < <(find "$PROJECTS_DIR" -name '*.jsonl' -type f)
 fi
 
-since="${first_session:-$(date +%Y-%m-%d)}"
+since=$(date +%Y-%m-%d)
+if [ "${#transcripts[@]}" -gt 0 ]; then
+  oldest=$(find "$PROJECTS_DIR" -name '*.jsonl' -type f -printf '%TY-%Tm-%Td\n' | sort | head -1)
+  since="${oldest:-$since}"
+fi
 
-# Compute historical energy (Wh)
-total_wh=$(echo "scale=6; \
-  $output * 0.002 + \
-  $input * 0.0005 + \
-  $cache_create * 0.0005 + \
-  $cache_read * 0.00002" | bc)
+scan=$(jq -nR \
+  --arg ts "$NOW" \
+  --argjson pue "$pue" \
+  --argjson g "$co2_g_per_kwh" \
+  '
+  def sid_of(f): f | sub(".*/projects/[^/]+/"; "") | sub("/subagents/.*$"; "") | sub("\\.jsonl$"; "");
+  def base_wh(name):
+    if   name | test("opus")   then 0.002
+    elif name | test("sonnet") then 0.0008
+    elif name | test("haiku")  then 0.0003
+    else                            0.001
+    end;
+  def tok: {
+    inputTokens: ([.[].usage.input_tokens // 0] | add),
+    outputTokens: ([.[].usage.output_tokens // 0] | add),
+    cacheReadInputTokens: ([.[].usage.cache_read_input_tokens // 0] | add),
+    cacheCreationInputTokens: ([.[].usage.cache_creation_input_tokens // 0] | add)
+  };
+  [ inputs
+    | sid_of(input_filename) as $sid
+    | fromjson? | .message?
+    | select(. != null and .usage != null and .id != null and .model != null)
+    | select(.model != "<synthetic>")
+    | {sid: $sid, id, model, usage} ]
+  | group_by(.id) | map(.[-1])
+  | . as $entries
+  | ($entries | group_by(.sid) | map({
+      key: .[0].sid,
+      value: {updatedAt: $ts, models: (group_by(.model) | map({key: .[0].model, value: tok}) | from_entries)}
+    }) | from_entries) as $sessions
+  | ($entries | group_by(.model) | map(
+      base_wh(.[0].model) as $b | tok |
+      (.outputTokens * $b + .inputTokens * $b * 0.20 + .cacheCreationInputTokens * $b * 0.25 + .cacheReadInputTokens * $b * 0.02)
+    ) | add // 0 | . / 1000 * $pue) as $kwh
+  | {
+      sessions: $sessions,
+      tokens: ([$entries[].usage | (.input_tokens // 0) + (.output_tokens // 0) + (.cache_read_input_tokens // 0) + (.cache_creation_input_tokens // 0)] | add // 0),
+      kwh: $kwh,
+      co2: ($kwh * $g / 1000)
+    }
+  ' "${transcripts[@]:-/dev/null}")
 
-# Apply PUE -> kWh
-total_kwh=$(echo "scale=6; $total_wh / 1000 * $pue" | bc)
+total_tokens=$(jq '.tokens' <<<"$scan")
+total_kwh=$(jq '.kwh' <<<"$scan")
+total_co2=$(jq '.co2' <<<"$scan")
+trees_needed=$(jq --argjson t "$threshold" '.co2 / $t | floor' <<<"$scan")
 
-# kWh -> CO2 kg
-total_co2=$(echo "scale=6; $total_kwh * $co2_g_per_kwh / 1000" | bc)
-
-# Compute trees needed
-trees_needed=$(echo "$total_co2 / $threshold" | bc)
-
-# Create usage.json with historical accumulation
-NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 mkdir -p "$DATA_DIR"
-cat > "$USAGE_FILE" << EOF
-{
-  "lastSnapshot": {
-    "inputTokens": ${input},
-    "outputTokens": ${output},
-    "cacheReadInputTokens": ${cache_read},
-    "cacheCreationInputTokens": ${cache_create},
-    "timestamp": "${NOW}"
-  },
-  "accumulated": {
-    "kwh": ${total_kwh},
-    "co2_kg": ${total_co2},
-    "since": "${since}"
-  },
-  "history": [],
-  "trees": {
-    "total": 0,
-    "planted": []
+jq \
+  --arg since "$since" \
+  '
+  {
+    sessions: .sessions,
+    accumulated: {kwh: .kwh, co2_kg: .co2, since: $since},
+    history: [],
+    trees: {total: 0, planted: []}
   }
-}
-EOF
+  ' <<<"$scan" > "$USAGE_FILE"
 
 # Summary output
-total_tokens=$((input + output + cache_read + cache_create))
 echo ""
 echo "=== green-code: initial analysis ==="
 echo ""

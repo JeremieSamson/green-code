@@ -36,7 +36,7 @@ On first launch, the plugin asks for your Tree-Nation API token and preferences.
 
 ### Token tracking
 
-At each session end, the plugin reads `~/.claude/stats-cache.json` and computes the delta since the last check.
+At each session stop, the plugin reads the current session transcript (`~/.claude/projects/**/*.jsonl`, including subagent transcripts), deduplicates messages by id, and computes the per-model token delta against a per-session snapshot stored in `usage.json`.
 
 ### Energy estimation
 
@@ -84,7 +84,7 @@ Shell script output (session start, setup wizard, planting feedback) is auto-tra
 - Energy estimates have ~x2 uncertainty -- no AI provider publishes per-token energy data
 - Claude's exact architecture (dense vs MoE) is not public
 - CO2 depends on datacenter location; US mix is the default assumption
-- `stats-cache.json` may not update in real-time in all Claude Code versions
+- The initial bootstrap only covers session transcripts still on disk (Claude Code cleans them up after its retention period)
 
 ## Prerequisites
 

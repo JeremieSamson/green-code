@@ -55,7 +55,7 @@ If `~/.claude/plugins/data/green-code/usage.json` does not exist, run the bootst
 "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"
 ```
 
-This reads `~/.claude/stats-cache.json`, computes accumulated CO2 from all past usage, and creates `usage.json`. Show the bootstrap output to the user.
+This scans the session transcripts in `~/.claude/projects/`, computes accumulated CO2 from all past usage still on disk, and creates `usage.json`. It can take up to a minute on large histories. Show the bootstrap output to the user.
 
 ## Display format
 
