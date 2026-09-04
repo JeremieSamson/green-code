@@ -99,14 +99,18 @@ jq \
   ' "$USAGE_FILE" > "${USAGE_FILE}.tmp" && mv "${USAGE_FILE}.tmp" "$USAGE_FILE"
 
 if [ "$mode" = "auto" ]; then
-  new_co2=$(jq '.accumulated.co2_kg // 0' "$USAGE_FILE")
-  trees_to_plant=$(echo "$new_co2 / $threshold" | bc)
+  # The debt is what has been emitted minus what the trees already planted
+  # cover. treenation.sh increments trees.total, so a successful planting
+  # lowers the debt by itself: accumulated.co2_kg stays a lifetime total, the
+  # same convention session-start.sh and the status skill rely on.
+  # Computed in jq rather than bc: jq may render small floats in scientific
+  # notation, which bc cannot parse.
+  trees_to_plant=$(jq --argjson threshold "$threshold" '
+    (((.accumulated.co2_kg // 0) - ((.trees.total // 0) * $threshold)) / $threshold)
+    | floor
+    | if . < 0 then 0 else . end
+    ' "$USAGE_FILE")
   if [ "$trees_to_plant" -gt 0 ] 2>/dev/null; then
-    "${PLUGIN_ROOT}/scripts/treenation.sh" plant "$trees_to_plant"
-    if [ $? -eq 0 ]; then
-      remainder=$(echo "scale=6; $new_co2 - ($trees_to_plant * $threshold)" | bc)
-      jq --argjson r "$remainder" '.accumulated.co2_kg = $r' \
-        "$USAGE_FILE" > "${USAGE_FILE}.tmp" && mv "${USAGE_FILE}.tmp" "$USAGE_FILE"
-    fi
+    "${PLUGIN_ROOT}/scripts/treenation.sh" plant "$trees_to_plant" || true
   fi
 fi

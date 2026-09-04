@@ -22,7 +22,7 @@ Present the data in this format (adapt numbers from the JSON):
       Period:        Since {accumulated.since}
       Energy:        {accumulated.kwh} kWh (estimated)
       CO2 emitted:   {accumulated.co2_kg} kg (US mix, {config.co2_grams_per_kwh} g/kWh, PUE {config.pue})
-      Trees needed:  {ceil(accumulated.co2_kg / config.threshold_co2_kg)} (at {config.threshold_co2_kg} kg CO2/tree)
+      Trees needed:  {ceil(accumulated.co2_kg / config.threshold_co2_kg)} since {accumulated.since} (at {config.threshold_co2_kg} kg CO2/tree)
       Trees planted: {trees.total}
       Balance:       {trees.total * config.threshold_co2_kg - accumulated.co2_kg} kg CO2
 
@@ -39,6 +39,9 @@ If there are planted trees in `trees.planted`, show the last 5 entries:
 ## Important
 
 - All numbers should be rounded to 2 decimal places for display
+- `accumulated.co2_kg` is a lifetime total that is never decremented, so "Trees needed" is
+  the count required since day one, not the count still owed. What is still owed is
+  `floor(-balance / threshold_co2_kg)`, and it is 0 whenever the balance is positive.
 - If `accumulated.co2_kg` is 0 or very small, encourage the user: "Your footprint is minimal so far. Keep coding!"
 - If balance is negative (more CO2 than trees planted), suggest: "Run /green:plant to compensate"
 - If balance is positive or zero: "You're carbon-neutral! Keep it up."

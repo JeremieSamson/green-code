@@ -11,11 +11,16 @@ Plant trees via Tree-Nation to compensate the user's AI carbon footprint.
 
 1. Read `~/.claude/plugins/data/green-code/config.json` to verify API key and forest_id are set. If not, tell the user to run `/green:config` first.
 
-2. Read `~/.claude/plugins/data/green-code/usage.json` to get the current CO2 accumulation.
+2. Read `~/.claude/plugins/data/green-code/usage.json`. `accumulated.co2_kg` is a
+   lifetime total of emissions that is never decremented, and `trees.total` counts
+   every tree planted so far, so the outstanding debt is
+   `accumulated.co2_kg - (trees.total * threshold_co2_kg)`.
 
 3. Determine how many trees to plant:
    - If the user provided a number (e.g., `/green:plant 3`), use that number.
-   - If no number provided, calculate: `ceil(accumulated.co2_kg / threshold_co2_kg)`
+   - If no number provided, calculate `floor(debt / threshold_co2_kg)` using the debt
+     from step 2. Never divide `accumulated.co2_kg` by the threshold directly: that
+     ignores the trees already planted and offsets the same emissions twice.
    - If the calculated number is 0, tell the user their footprint is too small to warrant a tree yet, and show the current CO2 level.
 
 4. Confirm with the user before planting:
@@ -35,9 +40,9 @@ Plant trees via Tree-Nation to compensate the user's AI carbon footprint.
    - If starts with `OK:` -- success. Show the number of trees planted and certificate URLs.
    - If starts with `ERROR:` -- show the error and suggest checking the API key.
 
-7. After successful planting, update the accumulated CO2:
-   - Subtract `N * threshold_co2_kg` from `accumulated.co2_kg` in usage.json
-   - Use jq or direct JSON edit
+7. Do NOT edit `accumulated.co2_kg`. The script already increments `trees.total`,
+   which lowers the debt computed in step 2; subtracting the offset as well would
+   count the planting twice.
 
 8. Show a summary:
    ```
@@ -51,5 +56,6 @@ Plant trees via Tree-Nation to compensate the user's AI carbon footprint.
 
 - Always confirm before planting (it costs real money via Tree-Nation credits)
 - The script handles logging the planting in usage.json automatically (including the `message`)
+- `accumulated.co2_kg` is a lifetime total: only the tracker hook ever writes to it
 - The message appears on the public certificate, so keep it clean; the default is safe when in doubt
 - If the API call fails, do NOT modify usage.json
